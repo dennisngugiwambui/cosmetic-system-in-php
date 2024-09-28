@@ -1,44 +1,36 @@
-
 <?php
-
-// Include the database connection
+session_start();
 include '../php/db.php';
+global $conn;
 
-// Include the database connection
-include '../php/db.php';  // This file should contain the $conn variable initialization
-
-// Database connection initialization
-$host = 'localhost';    // Database host (usually 'localhost')
-$db = 'glowcosmetics'; // Database name (change to your actual database name)
-$user = 'root';         // Database username (change as per your database setup)
-$pass = '';             // Database password (leave empty if no password is set)
-
-try {
-    $conn = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    echo "Connection failed: " . $e->getMessage();
-    exit(); // Exit the script if connection fails
+// Check if the user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../views/login.php");
+    exit();
 }
 
-// Fetch products from the database
-$sql = "SELECT * FROM products LIMIT 6"; // Fetch top 6 products (you can adjust as needed)
-$stmt = $conn->prepare($sql);  // Prepare the SQL statement
-$stmt->execute();  // Execute the statement
-$products = $stmt->fetchAll(PDO::FETCH_ASSOC);  // Fetch the results
+// Get the user ID from the session
+$user_id = $_SESSION['user_id'];
+
+// Fetch cart items with product details including the image
+$sql = "SELECT cart.product_id, cart.quantity, products.name, products.price, products.image 
+        FROM cart 
+        JOIN products ON cart.product_id = products.id 
+        WHERE cart.user_id = :user_id";
+$stmt = $conn->prepare($sql);
+$stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+$stmt->execute();
+$cart_items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-
-
+<!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Basket</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart</title>
+    <link rel="stylesheet" href="path_to_your_stylesheet.css">
 </head>
-
 <body>
 <main>
     <div class="basket">
@@ -55,70 +47,45 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);  // Fetch the results
                 <li class="subtotal">Subtotal</li>
             </ul>
         </div>
-        <div class="basket-product">
-            <div class="item">
-                <div class="product-image">
-                    <img src="http://placehold.it/120x166" alt="Placholder Image 2" class="product-frame">
+
+        <?php
+        $total_price = 0; // To calculate total price
+        foreach ($cart_items as $item) {
+            $subtotal = $item['price'] * $item['quantity'];
+            $total_price += $subtotal;
+            ?>
+            <div class="basket-product">
+                <div class="item">
+                    <div class="product-image">
+                        <img src="../product_images/<?php echo $item['image']; ?>" alt="<?php echo $item['name']; ?>" class="product-frame">
+                    </div>
+                    <div class="product-details">
+                        <h1><strong><?php echo $item['quantity']; ?> x <?php echo $item['name']; ?></strong></h1>
+                        <p>Product ID - <?php echo $item['product_id']; ?></p>
+                    </div>
                 </div>
-                <div class="product-details">
-                    <h1><strong><span class="item-quantity">4</span> x Eliza J</strong> Lace Sleeve Cuff Dress</h1>
-                    <p><strong>Navy, Size 18</strong></p>
-                    <p>Product Code - 232321939</p>
+                <div class="price"><?php echo number_format($item['price'], 2); ?></div>
+                <div class="quantity">
+                    <input type="number" value="<?php echo $item['quantity']; ?>" min="1" class="quantity-field">
                 </div>
-            </div>
-            <div class="price">26.00</div>
-            <div class="quantity">
-                <input type="number" value="4" min="1" class="quantity-field">
-            </div>
-            <div class="subtotal">104.00</div>
-            <div class="remove">
-                <button>Remove</button>
-            </div>
-        </div>
-        <div class="basket-product">
-            <div class="item">
-                <div class="product-image">
-                    <img src="http://placehold.it/120x166" alt="Placholder Image 2" class="product-frame">
-                </div>
-                <div class="product-details">
-                    <h1><strong><span class="item-quantity">1</span> x Whistles</strong> Amella Lace Midi Dress</h1>
-                    <p><strong>Navy, Size 10</strong></p>
-                    <p>Product Code - 232321939</p>
+                <div class="subtotal"><?php echo number_format($subtotal, 2); ?></div>
+                <div class="remove">
+                    <button>Remove</button>
                 </div>
             </div>
-            <div class="price">26.00</div>
-            <div class="quantity">
-                <input type="number" value="1" min="1" class="quantity-field">
-            </div>
-            <div class="subtotal">26.00</div>
-            <div class="remove">
-                <button>Remove</button>
-            </div>
-        </div>
+        <?php } ?>
     </div>
+
     <aside>
         <div class="summary">
             <div class="summary-total-items"><span class="total-items"></span> Items in your Bag</div>
             <div class="summary-subtotal">
                 <div class="subtotal-title">Subtotal</div>
-                <div class="subtotal-value final-value" id="basket-subtotal">130.00</div>
-                <div class="summary-promo hide">
-                    <div class="promo-title">Promotion</div>
-                    <div class="promo-value final-value" id="basket-promo"></div>
-                </div>
-            </div>
-            <div class="summary-delivery">
-                <select name="delivery-collection" class="summary-delivery-selection">
-                    <option value="0" selected="selected">Select Collection or Delivery</option>
-                    <option value="collection">Collection</option>
-                    <option value="first-class">Royal Mail 1st Class</option>
-                    <option value="second-class">Royal Mail 2nd Class</option>
-                    <option value="signed-for">Royal Mail Special Delivery</option>
-                </select>
+                <div class="subtotal-value final-value" id="basket-subtotal"><?php echo number_format($total_price, 2); ?></div>
             </div>
             <div class="summary-total">
                 <div class="total-title">Total</div>
-                <div class="total-value final-value" id="basket-total">130.00</div>
+                <div class="total-value final-value" id="basket-total"><?php echo number_format($total_price, 2); ?></div>
             </div>
             <div class="summary-checkout">
                 <button class="checkout-cta">Go to Secure Checkout</button>
@@ -127,14 +94,12 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);  // Fetch the results
     </aside>
 </main>
 </body>
-
 </html>
 
 
 
 <style>
 
-    @charset "utf-8";
 
     @import url(https://fonts.googleapis.com/css?family=Open+Sans:400,700,600);
 

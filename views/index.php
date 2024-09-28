@@ -1,17 +1,15 @@
 
+
 <?php
 
 // Include the database connection
 include '../php/db.php';
 
-// Include the database connection
-include '../php/db.php';  // This file should contain the $conn variable initialization
-
 // Database connection initialization
 $host = 'localhost';    // Database host (usually 'localhost')
-$db = 'glowcosmetics'; // Database name (change to your actual database name)
-$user = 'root';         // Database username (change as per your database setup)
-$pass = '';             // Database password (leave empty if no password is set)
+$db = 'glowcosmetics'; // Database name
+$user = 'root';         // Database username
+$pass = '';             // Database password
 
 try {
     $conn = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
@@ -22,11 +20,24 @@ try {
 }
 
 // Fetch products from the database
-$sql = "SELECT * FROM products LIMIT 6"; // Fetch top 6 products (you can adjust as needed)
-$stmt = $conn->prepare($sql);  // Prepare the SQL statement
-$stmt->execute();  // Execute the statement
-$products = $stmt->fetchAll(PDO::FETCH_ASSOC);  // Fetch the results
+$sql = "SELECT * FROM products LIMIT 6"; // Fetch top 6 products
+$stmt = $conn->prepare($sql);
+$stmt->execute();
+$products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch Top 6 products for Top Sales
+$sql_top_sales = "SELECT * FROM products ORDER BY stock DESC LIMIT 6";
+$stmt_top_sales = $conn->prepare($sql_top_sales);
+$stmt_top_sales->execute();
+$top_sales_products = $stmt_top_sales->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch Top 6 products for New Arrivals (Most recent products)
+$sql_new_arrivals = "SELECT * FROM products ORDER BY created_at DESC LIMIT 6";
+$stmt_new_arrivals = $conn->prepare($sql_new_arrivals);
+$stmt_new_arrivals->execute();
+$new_arrival_products = $stmt_new_arrivals->fetchAll(PDO::FETCH_ASSOC);
 ?>
+
 
 
 
@@ -107,331 +118,117 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);  // Fetch the results
     <div class="seller container">
         <h2>Top Sales</h2>
         <div class="best-seller">
-            <div class="best-p1">
-                <img src="https://i.postimg.cc/8CmBZH5N/shoes.webp" alt="img">
-                <div class="best-p1-txt">
-                    <div class="name-of-p">
-                        <p>PS England Shoes</p>
-                    </div>
-                    <div class="rating">
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bx-star'></i>
-                        <i class='bx bx-star'></i>
-                    </div>
-                    <div class="price">
-                        &dollar;37.24
-                        <div class="colors">
-                            <i class='bx bxs-circle red'></i>
-                            <i class='bx bxs-circle blue'></i>
-                            <i class='bx bxs-circle white'></i>
+            <!-- Loop through products and display them -->
+            <?php foreach ($products as $product): ?>
+                <div class="best-p1">
+                    <img src="../product_images/<?php echo htmlspecialchars($product['image']); ?>" alt="Product Image">
+                    <div class="best-p1-txt">
+                        <div class="name-of-p">
+                            <p><?php echo htmlspecialchars($product['name']); ?></p>
                         </div>
-                    </div>
-                    <div class="buy-now">
-                        <button><a href="https://codepen.io/sanketbodke/full/mdprZOq">Buy  Now</a></button>
-                    </div>
-                    <!-- <div class="add-cart">
-                        <button>Add To Cart</button>
-                    </div> -->
-                </div>
-            </div>
-            <div class="best-p1">
-                <img src="https://i.postimg.cc/76X9ZV8m/Screenshot_from_2022-06-03_18-45-12.png" alt="img">
-                <div class="best-p1-txt">
-                    <div class="name-of-p">
-                        <p>PS England Jacket</p>
-                    </div>
-                    <div class="rating">
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bx-star'></i>
-                        <i class='bx bx-star'></i>
-                        <i class='bx bx-star'></i>
-                    </div>
-                    <div class="price">
-                        &dollar;17.24
-                        <div class="colors">
-                            <i class='bx bxs-circle green'></i>
-                            <i class='bx bxs-circle grey'></i>
-                            <i class='bx bxs-circle brown'></i>
+                        <div class="rating">
+                            <i class='bx bxs-star'></i>
+                            <i class='bx bxs-star'></i>
+                            <i class='bx bxs-star'></i>
+                            <i class='bx bx-star'></i>
+                            <i class='bx bx-star'></i>
                         </div>
-                    </div>
-                    <div class="buy-now">
-                        <button><a href="https://codepen.io/sanketbodke/full/mdprZOq">Buy  Now</a></button>
+                        <div class="price">
+                            &dollar;<?php echo htmlspecialchars($product['price']); ?>
+                        </div>
+
+                        <!-- Buy Now Button for each product -->
+                        <div class="buy-now">
+                            <form action="../php/add_to_cart.php" method="POST">
+                                <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                                <input type="hidden" name="product_name" value="<?php echo htmlspecialchars($product['name']); ?>">
+                                <input type="hidden" name="price" value="<?php echo htmlspecialchars($product['price']); ?>">
+                                <button type="submit">Buy Now</button>
+                            </form>
+                        </div>
+
                     </div>
                 </div>
-            </div>
-            <div class="best-p1">
-                <img src="https://i.postimg.cc/j2FhzSjf/bs2.png" alt="img">
-                <div class="best-p1-txt">
-                    <div class="name-of-p">
-                        <p>PS England Shirt</p>
-                    </div>
-                    <div class="rating">
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bx-star'></i>
-                    </div>
-                    <div class="price">
-                        &dollar;27.24
-                        <div class="colors">
-                            <i class='bx bxs-circle brown'></i>
-                            <i class='bx bxs-circle green'></i>
-                            <i class='bx bxs-circle blue'></i>
-                        </div>
-                    </div>
-                    <div class="buy-now">
-                        <button><a href="https://codepen.io/sanketbodke/full/mdprZOq">Buy  Now</a></button>
-                    </div>
-                </div>
-            </div>
-            <div class="best-p1">
-                <img src="https://i.postimg.cc/QtjSDzPF/bs3.png" alt="img">
-                <div class="best-p1-txt">
-                    <div class="name-of-p">
-                        <p>PS England Shoes</p>
-                    </div>
-                    <div class="rating">
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                    </div>
-                    <div class="price">
-                        &dollar;43.67
-                        <div class="colors">
-                            <i class='bx bxs-circle red'></i>
-                            <i class='bx bxs-circle grey'></i>
-                            <i class='bx bxs-circle blue'></i>
-                        </div>
-                    </div>
-                    <div class="buy-now">
-                        <button><a href="https://codepen.io/sanketbodke/full/mdprZOq">Buy  Now</a></button>
-                    </div>
-                </div>
-            </div>
+            <?php endforeach; ?>
         </div>
     </div>
     <div class="seller container">
-        <h2>New Arrivals</h2>
-        <div class="best-seller">
-            <div class="best-p1">
-                <img src="https://i.postimg.cc/fbnB2yfj/na1.png" alt="img">
-                <div class="best-p1-txt">
-                    <div class="name-of-p">
-                        <p>PS England T-Shirt</p>
-                    </div>
-                    <div class="rating">
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                    </div>
-                    <div class="price">
-                        &dollar;10.23
-                        <div class="colors">
-                            <i class='bx bxs-circle blank'></i>
-                            <i class='bx bxs-circle blue'></i>
-                            <i class='bx bxs-circle brown'></i>
+
+        <!-- New Arrivals Section -->
+        <section id="new-arrivals">
+            <div class="seller container">
+                <h2>New Arrivals</h2>
+                <div class="best-seller">
+                    <!-- Loop through New Arrivals products -->
+                    <?php foreach ($new_arrival_products as $product): ?>
+                        <div class="best-p1">
+                            <img src="../product_images/<?php echo htmlspecialchars($product['image']); ?>" alt="Product Image">
+                            <div class="best-p1-txt">
+                                <div class="name-of-p">
+                                    <p><?php echo htmlspecialchars($product['name']); ?></p>
+                                </div>
+                                <div class="rating">
+                                    <i class='bx bxs-star'></i>
+                                    <i class='bx bxs-star'></i>
+                                    <i class='bx bxs-star'></i>
+                                    <i class='bx bx-star'></i>
+                                    <i class='bx bx-star'></i>
+                                </div>
+                                <div class="price">
+                                    &dollar;<?php echo htmlspecialchars($product['price']); ?>
+                                </div>
+
+                                <!-- Buy Now Button for each product -->
+                                <div class="buy-now">
+                                    <form action="../php/add_to_cart.php" method="POST">
+                                        <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                                        <input type="hidden" name="product_name" value="<?php echo htmlspecialchars($product['name']); ?>">
+                                        <input type="hidden" name="price" value="<?php echo htmlspecialchars($product['price']); ?>">
+                                        <button type="submit">Buy Now</button>
+                                    </form>
+                                </div>
+
+                            </div>
                         </div>
-                    </div>
-                    <div class="buy-now">
-                        <button><a href="https://codepen.io/sanketbodke/full/mdprZOq">Buy  Now</a></button>
-                    </div>
-                </div>
-            </div>
-            <div class="best-p1">
-                <img src="https://i.postimg.cc/zD02zJq8/na2.png" alt="img">
-                <div class="best-p1-txt">
-                    <div class="name-of-p">
-                        <p>PS England Bag</p>
-                    </div>
-                    <div class="rating">
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bx-star'></i>
-                        <i class='bx bx-star'></i>
-                        <i class='bx bx-star'></i>
-                        <i class='bx bx-star'></i>
-                    </div>
-                    <div class="price">
-                        &dollar;09.28
-                        <div class="colors">
-                            <i class='bx bxs-circle brown'></i>
-                            <i class='bx bxs-circle red'></i>
-                            <i class='bx bxs-circle green'></i>
-                        </div>
-                    </div>
-                    <div class="buy-now">
-                        <button><a href="https://codepen.io/sanketbodke/full/mdprZOq">Buy  Now</a></button>
-                    </div>
-                </div>
-            </div>
-            <div class="best-p1">
-                <img src="https://i.postimg.cc/Dfj5VBcz/sunglasses1.jpg" alt="img">
-                <div class="best-p1-txt">
-                    <div class="name-of-p">
-                        <p>PS England Sunglass</p>
-                    </div>
-                    <div class="rating">
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                    </div>
-                    <div class="price">
-                        &dollar;06.24
-                        <div class="colors">
-                            <i class='bx bxs-circle grey'></i>
-                            <i class='bx bxs-circle blank'></i>
-                            <i class='bx bxs-circle blank'></i>
-                        </div>
-                    </div>
-                    <div class="buy-now">
-                        <button><a href="https://codepen.io/sanketbodke/full/mdprZOq">Buy  Now</a></button>
-                    </div>
-                </div>
-            </div>
-            <div class="best-p1">
-                <img src="https://i.postimg.cc/FszW12Kc/na4.png" alt="img">
-                <div class="best-p1-txt">
-                    <div class="name-of-p">
-                        <p>PS England Shoes</p>
-                    </div>
-                    <div class="rating">
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                    </div>
-                    <div class="price">
-                        &dollar;43.67
-                        <div class="colors">
-                            <i class='bx bxs-circle grey'></i>
-                            <i class='bx bxs-circle red'></i>
-                            <i class='bx bxs-circle blue'></i>
-                        </div>
-                    </div>
-                    <div class="buy-now">
-                        <button><a href="https://codepen.io/sanketbodke/full/mdprZOq">Buy  Now</a></button>
-                    </div>
-                </div>
+                    <?php endforeach; ?>
+
+
             </div>
         </div>
     </div>
     <div class="seller container">
         <h2>Hot Sales</h2>
         <div class="best-seller">
-            <div class="best-p1">
-                <img src="https://i.postimg.cc/jS7pSQLf/na4.png" alt="img">
-                <div class="best-p1-txt">
-                    <div class="name-of-p">
-                        <p>PS England Shoes</p>
-                    </div>
-                    <div class="rating">
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                    </div>
-                    <div class="price">
-                        &dollar;37.24
-                        <div class="colors">
-                            <i class='bx bxs-circle grey'></i>
-                            <i class='bx bxs-circle black'></i>
-                            <i class='bx bxs-circle blue'></i>
+            <?php foreach ($top_sales_products as $product): ?>
+                <div class="best-p1">
+                    <img src="../product_images/<?php echo htmlspecialchars($product['image']); ?>" alt="Product Image">
+                    <div class="best-p1-txt">
+                        <div class="name-of-p">
+                            <p><?php echo htmlspecialchars($product['name']); ?></p>
                         </div>
-                    </div>
-                    <div class="buy-now">
-                        <button><a href="https://codepen.io/sanketbodke/full/mdprZOq">Buy  Now</a></button>
+                        <div class="rating">
+                            <i class='bx bxs-star'></i>
+                            <i class='bx bxs-star'></i>
+                            <i class='bx bxs-star'></i>
+                            <i class='bx bx-star'></i>
+                            <i class='bx bx-star'></i>
+                        </div>
+                        <div class="price">
+                            &dollar;<?php echo htmlspecialchars($product['price']); ?>
+                        </div>
+                        <!-- Buy Now Button for each product -->
+                        <div class="buy-now">
+                            <form action="../php/add_to_cart.php" method="POST">
+                                <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                                <input type="hidden" name="product_name" value="<?php echo htmlspecialchars($product['name']); ?>">
+                                <input type="hidden" name="price" value="<?php echo htmlspecialchars($product['price']); ?>">
+                                <button type="submit">Buy Now</button>
+                            </form>
+                        </div>
+
                     </div>
                 </div>
-            </div>
-            <div class="best-p1">
-                <img src="https://i.postimg.cc/fbnB2yfj/na1.png" alt="img">
-                <div class="best-p1-txt">
-                    <div class="name-of-p">
-                        <p>PS England T-Shirt</p>
-                    </div>
-                    <div class="rating">
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                    </div>
-                    <div class="price">
-                        &dollar;10.23
-                        <div class="colors">
-                            <i class='bx bxs-circle blank'></i>
-                            <i class='bx bxs-circle blue'></i>
-                            <i class='bx bxs-circle brown'></i>
-                        </div>
-                    </div>
-                    <div class="buy-now">
-                        <button><a href="https://codepen.io/sanketbodke/full/mdprZOq">Buy  Now</a></button>
-                    </div>
-                </div>
-            </div>
-            <div class="best-p1">
-                <img src="https://i.postimg.cc/RhVP7YQk/hs1.png" alt="img">
-                <div class="best-p1-txt">
-                    <div class="name-of-p">
-                        <p>PS England T-Shirt</p>
-                    </div>
-                    <div class="rating">
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                    </div>
-                    <div class="price">
-                        &dollar;15.24
-                        <div class="colors">
-                            <i class='bx bxs-circle blank'></i>
-                            <i class='bx bxs-circle red'></i>
-                            <i class='bx bxs-circle blue'></i>
-                        </div>
-                    </div>
-                    <div class="buy-now">
-                        <button><a href="https://codepen.io/sanketbodke/full/mdprZOq">Buy  Now</a></button>
-                    </div>
-                </div>
-            </div>
-            <div class="best-p1">
-                <img src="https://i.postimg.cc/zD02zJq8/na2.png" alt="img">
-                <div class="best-p1-txt">
-                    <div class="name-of-p">
-                        <p>PS England Bag</p>
-                    </div>
-                    <div class="rating">
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bx-star'></i>
-                        <i class='bx bx-star'></i>
-                        <i class='bx bx-star'></i>
-                        <i class='bx bx-star'></i>
-                    </div>
-                    <div class="price">
-                        &dollar;09.28
-                        <div class="colors">
-                            <i class='bx bxs-circle blank'></i>
-                            <i class='bx bxs-circle grey'></i>
-                            <i class='bx bxs-circle brown'></i>
-                        </div>
-                    </div>
-                    <div class="buy-now">
-                        <button><a href="https://codepen.io/sanketbodke/full/mdprZOq">Buy  Now</a></button>
-                    </div>
-                </div>
-            </div>
+            <?php endforeach; ?>
         </div>
     </div>
 </section>
