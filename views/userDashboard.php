@@ -1,3 +1,48 @@
+<?php
+session_start();
+include '../php/db.php';  // Database connection
+global $conn;
+
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../views/login.php");
+    exit();
+}
+
+// Get the logged-in user's ID
+$user_id = $_SESSION['user_id'];
+
+// Fetch user information from the database
+$sql = "SELECT name, email FROM users WHERE id = :user_id";
+$stmt = $conn->prepare($sql);
+$stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+$stmt->execute();
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$user) {
+    header("Location: ../views/login.php");
+    exit();
+}
+
+$name = $user['name'];
+$email = $user['email'];
+
+
+// Fetch the current user's order history
+$sql_orders = "SELECT id, order_date, total_cost, status FROM orders WHERE user_id = :user_id";
+$stmt_orders = $conn->prepare($sql_orders);
+$stmt_orders->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+$stmt_orders->execute();
+$orders = $stmt_orders->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch the latest 3 products added to the products table
+$sql_products = "SELECT name FROM products ORDER BY created_at DESC LIMIT 3";
+$stmt_products = $conn->prepare($sql_products);
+$stmt_products->execute();
+$latest_products = $stmt_products->fetchAll(PDO::FETCH_ASSOC);
+?>
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,6 +50,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Glow Cosmetics - User Dashboard</title>
     <style>
+        /* Keep your styling as it was */
         * {
             margin: 0;
             padding: 0;
@@ -40,7 +86,7 @@
             background-color: #fff;
             padding: 1.5rem;
             border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
 
         .main-content {
@@ -48,7 +94,7 @@
             background-color: #fff;
             padding: 2rem;
             border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
 
         .nav-list {
@@ -164,19 +210,19 @@
             <section id="profile" class="dashboard-section active">
                 <h2>My Profile</h2>
                 <div class="profile-info">
-                    <p><strong>Name:</strong> Jane Doe</p>
-                    <p><strong>Email:</strong> jane.doe@example.com</p>
+                    <p><strong>Name:</strong> <?php echo htmlspecialchars($name); ?></p>
+                    <p><strong>Email:</strong> <?php echo htmlspecialchars($email); ?></p>
                     <p><strong>Address:</strong> 123 Glow Street, Beauty City, BC 12345</p>
                     <button onclick="toggleEditForm()">Edit Profile</button>
                 </div>
                 <form class="edit-profile-form" id="editProfileForm">
                     <div class="form-group">
                         <label for="name">Name:</label>
-                        <input type="text" id="name" name="name" value="Jane Doe" required>
+                        <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($name); ?>" required>
                     </div>
                     <div class="form-group">
                         <label for="email">Email:</label>
-                        <input type="email" id="email" name="email" value="jane.doe@example.com" required>
+                        <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($email); ?>" required>
                     </div>
                     <div class="form-group">
                         <label for="address">Address:</label>
@@ -196,38 +242,42 @@
 
             <section id="orders" class="dashboard-section">
                 <h2>Order History</h2>
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Order ID</th>
-                        <th>Date</th>
-                        <th>Total</th>
-                        <th>Status</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td>#1001</td>
-                        <td>2024-09-15</td>
-                        <td>$75.99</td>
-                        <td>Delivered</td>
-                    </tr>
-                    <tr>
-                        <td>#1002</td>
-                        <td>2024-09-20</td>
-                        <td>$45.50</td>
-                        <td>Processing</td>
-                    </tr>
-                    </tbody>
-                </table>
+                <?php if (count($orders) > 0): ?>
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Date</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach ($orders as $order): ?>
+                            <tr>
+                                <td>#<?php echo $order['id']; ?></td>
+                                <td><?php echo date('Y-m-d', strtotime($order['order_date'])); ?></td>
+                                <td>$<?php echo number_format($order['total_cost'], 2); ?></td>
+                                <td><?php echo htmlspecialchars($order['status']); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php else: ?>
+                    <p>No order transacted yet. Please start purchasing from <a href="../views/index.php">our store</a>.</p>
+                <?php endif; ?>
             </section>
 
             <section id="wishlist" class="dashboard-section">
                 <h2>Wishlist</h2>
                 <ul>
-                    <li>Glow Serum</li>
-                    <li>Radiant Blush</li>
-                    <li>Hydrating Face Mask</li>
+                    <?php if (count($latest_products) > 0): ?>
+                        <?php foreach ($latest_products as $product): ?>
+                            <li><?php echo htmlspecialchars($product['name']); ?></li>
+                        <?php endforeach; ?>
+                    <?php else: ?
+                        <li>No products available in the wishlist.</li>
+                    <?php endif; ?>
                 </ul>
             </section>
 
@@ -268,11 +318,29 @@
 
     document.getElementById('editProfileForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        // Here you would typically send the form data to your server
+        // Handle profile update logic here
         alert('Profile updated successfully!');
         toggleEditForm();
     });
 
+    // Sidebar navigation functionality
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            // Remove 'active' class from all links and sections
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.dashboard-section').forEach(el => el.classList.remove('active'));
+
+            // Add 'active' class to clicked link and corresponding section
+            this.classList.add('active');
+            const section = this.dataset.section;
+            document.getElementById(section).classList.add('active');
+        });
+    });
+</script>
+
+<script>
     // Navigation functionality
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', function(e) {
@@ -288,5 +356,6 @@
         });
     });
 </script>
+
 </body>
 </html>

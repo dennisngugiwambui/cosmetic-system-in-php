@@ -118,15 +118,8 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);  // Fetch the results
         <h1>Thank You for Your Order!</h1>
         <p class="order-number">Order Number: #12345</p>
         <p>Your order has been successfully placed and will be processed shortly.</p>
-        <div class="order-details">
-            <h2>Order Details</h2>
-            <ul class="order-items">
-                <li>Glow Foundation x1: $29.99</li>
-                <li>Radiant Lipstick x2: $39.98</li>
-            </ul>
-            <p class="order-total">Total: $69.97</p>
-        </div>
-        <a href="#" class="back-to-shop">Continue Shopping</a>
+
+        <a href="index.php" class="back-to-shop">Continue Shopping</a>
     </div>
 </div>
 </body>

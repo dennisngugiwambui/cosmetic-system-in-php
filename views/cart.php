@@ -87,9 +87,12 @@ $cart_items = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="total-title">Total</div>
                 <div class="total-value final-value" id="basket-total"><?php echo number_format($total_price, 2); ?></div>
             </div>
-            <div class="summary-checkout">
-                <button class="checkout-cta">Go to Secure Checkout</button>
-            </div>
+            <form action="../php/checkout.php" method="POST">
+                <div class="summary-checkout">
+                    <button type="submit" class="checkout-cta">Go to Secure Checkout</button>
+                </div>
+            </form>
+
         </div>
     </aside>
 </main>
