@@ -269,7 +269,7 @@ $latest_products = $stmt_products->fetchAll(PDO::FETCH_ASSOC);
             </section>
 
             <section id="wishlist" class="dashboard-section">
-                <h2>Wishlist</h2
+                <h2>Wishlist</h2>
                 <ul>
                     <?php if (count($latest_products) > 0): ?>
                         <?php foreach ($latest_products as $product): ?>
