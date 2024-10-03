@@ -276,7 +276,7 @@ $latest_products = $stmt_products->fetchAll(PDO::FETCH_ASSOC);
                             <li><?php echo htmlspecialchars($product['name']); ?></li>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <li>No products available in the wishlist.</li
+                        <li>No products available in the wishlist.</li>
                     <?php endif; ?>
                 </ul>
             </section>
