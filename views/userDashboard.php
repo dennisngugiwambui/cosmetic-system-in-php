@@ -308,7 +308,7 @@ $latest_products = $stmt_products->fetchAll(PDO::FETCH_ASSOC);
         var profileInfo = document.querySelector('.profile-info');
         var editForm = document.querySelector('.edit-profile-form');
         if (editForm.style.display === 'none') {
-            profileInfo.style.display = 'none';
+            profileInfo.style.display = 'none'
             editForm.style.display = 'block';
         } else {
             profileInfo.style.display = 'block';
